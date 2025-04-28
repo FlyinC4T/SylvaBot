@@ -24,7 +24,7 @@ namespace SylvaBot
         {
             if (string.IsNullOrEmpty(Secret.token))
             {
-                Console.WriteLine("Bot token not found! Make sure DISCORD_BOT_TOKEN is set.");
+                Console.WriteLine("Bot token not found.");
                 return;
             }
 
