@@ -13,7 +13,9 @@ namespace SylvaBot
         private string logMessages = "";
 
         // Main method
+#pragma warning disable IDE0060 // Remove unused parameter
         static async Task Main(string[] args) => await new Start().MainAsync();
+#pragma warning restore IDE0060 // Remove unused parameter
 
         public async Task MainAsync()
         {
@@ -49,7 +51,7 @@ namespace SylvaBot
         private async Task Ready()
         {
             //var mainChannel = _client.GetChannel(Variables.MainChannelID) as IMessageChannel;
-            var logChannel = _client.GetChannel(Variables.LogChannelID) as IMessageChannel;
+            IMessageChannel logChannel = (IMessageChannel)_client.GetChannel(Variables.LogChannelID);
 
             await logChannel.SendMessageAsync("Sylva Connected.");
 
