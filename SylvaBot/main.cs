@@ -1,4 +1,7 @@
 ﻿//
+using Discord;
+using Discord.WebSocket;
+
 namespace SylvaBot
 {
     // Main class
@@ -53,6 +56,10 @@ namespace SylvaBot
             //var mainChannel = _client.GetChannel(Variables.MainChannelID) as IMessageChannel;
             IMessageChannel logChannel = (IMessageChannel)_client.GetChannel(Variables.LogChannelID);
 
+            // Set a status.
+            await _client.SetStatusAsync(UserStatus.Idle);
+            await _client.SetCustomStatusAsync("discord.gg/FJyChnMW5j - Support Server");
+
             await logChannel.SendMessageAsync("Sylva Connected.");
 
             while (true)
@@ -72,7 +79,7 @@ namespace SylvaBot
             if (message.Author.Id == _client.CurrentUser.Id)
                 return;
 
-            var response = new Prompt(_client).UserPrompt(message.Author, message.Content);
+            var response = new Methods.Prompt(_client).UserPrompt(message.Author, message.Content);
 
             if (response == "")
                 return;
