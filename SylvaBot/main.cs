@@ -9,8 +9,10 @@ namespace SylvaBot
     {
         private DiscordSocketClient _client;
 
-        public Start() => _client = new DiscordSocketClient();
-
+        public Start()
+        {
+            _client = new DiscordSocketClient();
+        }
 
         // Placeholders
         private string logMessages = "";
