@@ -1,0 +1,41 @@
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# Caches
+*.cache
+
+# VS Code / Rider / IDE folders
+.vscode/
+.idea/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Publish folder
+publish/
+
+# Logs and temp
+*.log
+*.tmp
+*.temp
+
+# Secrets
+.env
+Secret.cs
+SecretTemplate.cs
+
+# System junk
+Thumbs.db
+.DS_Store
+
+# Others
+*.generated.cs
+*.g.cs
+*.AssemblyAttributes.cs
