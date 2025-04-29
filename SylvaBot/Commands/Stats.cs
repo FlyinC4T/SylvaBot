@@ -35,7 +35,7 @@ namespace SylvaBot.Commands
                 .WithTitle("Sylva System Status 🌸")
                 .AddField("Memory", $"{memoryUsage} / 2 GB", true)
                 .AddField("Uptime", uptime, true)
-                .AddField("CPU", cpuUsage, true)
+                //.AddField("CPU", cpuUsage, true)
                 .WithColor(Variables.BaseColor)
                 .WithFooter(footer => footer.Text = "Sylva Status")
                 .WithCurrentTimestamp()

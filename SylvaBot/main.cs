@@ -109,12 +109,17 @@ namespace SylvaBot
                 {
                     await Task.Delay(60000);
 
+                    long unixLoopTime = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+
                     double memoryUsage = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
 
                     var embed = new EmbedBuilder()
                         .WithTitle("Live Sylva Status 🌸 (60s Delay)")
+                        .AddField("Client Latency", $"{_client.Latency} ms", true)
                         .AddField("Memory", $"{memoryUsage} / 2 GB", true)
                         .AddField("Up since", $"<t:{unixStartTime}:R>", true)
+                        .AddField("Up since", $"<t:{unixLoopTime}:R> (If past 1 minute, she's offline.)", true)
+
                         .WithColor(Variables.BaseColor)
                         .WithFooter(footer => footer.Text = "Sylva Status")
                         .WithCurrentTimestamp()
