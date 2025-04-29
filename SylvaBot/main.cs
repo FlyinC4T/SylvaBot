@@ -1,13 +1,17 @@
 ﻿//
 using Discord;
 using Discord.WebSocket;
+using System.Diagnostics;
 
 namespace SylvaBot
 {
     // Main class
     class Start
     {
+        private readonly DateTime startTime = Process.GetCurrentProcess().StartTime.ToUniversalTime();
+
         private DiscordSocketClient _client;
+        //private CommandHandler _commandHandler;
 
         public Start()
         {
@@ -24,21 +28,18 @@ namespace SylvaBot
 
         public async Task MainAsync()
         {
-            if (string.IsNullOrEmpty(Secret.token))
-            {
-                Console.WriteLine("Bot token not found.");
-                return;
-            }
-
             _client = new DiscordSocketClient();
+            var _commandHandler = new CommandHandler(_client);
 
             _client.Ready += Ready;
             _client.Log += LogAsync;
             _client.MessageReceived += MessageReceivedAsync;
 
+
             await _client.LoginAsync(TokenType.Bot, Secret.token);
             await _client.StartAsync();
 
+            await _commandHandler.InitializeAsync();
 
             // Block the program from exiting
             await Task.Delay(-1);
@@ -57,6 +58,7 @@ namespace SylvaBot
         {
             //var mainChannel = _client.GetChannel(Variables.MainChannelID) as IMessageChannel;
             IMessageChannel logChannel = (IMessageChannel)_client.GetChannel(Variables.LogChannelID);
+            IMessageChannel statusChannel = (IMessageChannel)_client.GetChannel(Variables.StatusChannelID);
 
             // Set a status.
             await _client.SetStatusAsync(UserStatus.Idle);
@@ -64,29 +66,80 @@ namespace SylvaBot
 
             await logChannel.SendMessageAsync("Sylva Connected.");
 
-            while (true)
+            _ = Task.Run(async () => {
+
+                // Placeholders
+                ulong messageId = 0;
+                string messageContent = "";
+
+                while (true)
+                {
+                    await Task.Delay(10000);
+
+                    double memoryUsage = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
+
+                    if (memoryUsage > 2048)
+                    {
+                        Console.WriteLine("Memory usage too high. Exiting...");
+                        await logChannel.SendMessageAsync("# :warning: Memory usage too high. Exiting...");
+
+                        Environment.Exit(1); // Kill process
+                    }
+
+                    // If we don't have any log messages, skip this iteration.
+                    if (logMessages == "") continue;
+
+                    // Update placeholders with new settings, and send the message.
+                    messageContent = $"```\n{logMessages}\n```";
+                    messageId = (await logChannel.SendMessageAsync(messageContent)).Id;
+
+                    // Reset log messages.
+                    logMessages = "";
+                }
+            });
+            
+            _ = Task.Run(async () =>
             {
-                await Task.Delay(10000);
+                // Placeholders
+                ulong messageId = 1366796274728177704;
+                
+                long unixStartTime = ((DateTimeOffset)startTime).ToUnixTimeSeconds();
 
-                // If we don't have any log messages, skip this iteration.
-                if (logMessages == "") continue;
+                while (true)
+                {
+                    await Task.Delay(60000);
 
-                await logChannel.SendMessageAsync($"```\n{logMessages}\n```");
-                logMessages = "";
-            }
+                    double memoryUsage = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
+
+                    var embed = new EmbedBuilder()
+                        .WithTitle("Live Sylva Status 🌸 (60s Delay)")
+                        .AddField("Memory", $"{memoryUsage} / 2 GB", true)
+                        .AddField("Up since", $"<t:{unixStartTime}:R>", true)
+                        .WithColor(Variables.BaseColor)
+                        .WithFooter(footer => footer.Text = "Sylva Status")
+                        .WithCurrentTimestamp()
+                        .Build();
+                    // Modify already-sent message.
+                    await statusChannel.ModifyMessageAsync(messageId, (msg) =>
+                    {
+                        msg.Embed = embed;
+                        msg.Content = " ";
+                    });
+                }
+            });
         }
 
         private async Task MessageReceivedAsync(SocketMessage message)
         {
-            if (message.Author.Id == _client.CurrentUser.Id)
+            // Ignore messages from the bot itself or system messages
+            if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
 
-            var response = new Methods.Prompt(_client).UserPrompt(message.Author, message.Content);
+            string response = new Methods.Prompt(_client).UserPrompt(message.Author, message.Content);
 
-            if (response == "")
-                return;
-
-            await message.Channel.SendMessageAsync(response);
+            // Only send a response if it's not empty
+            if (!string.IsNullOrWhiteSpace(response))
+                await message.Channel.SendMessageAsync(response);
         }
     }
 }
