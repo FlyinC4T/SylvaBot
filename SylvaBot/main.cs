@@ -3,6 +3,9 @@ using Discord;
 using Discord.WebSocket;
 using System.Diagnostics;
 
+using static SylvaBot.Secret;
+using static SylvaBot.Variables;
+
 namespace SylvaBot
 {
     // Main class
@@ -56,9 +59,8 @@ namespace SylvaBot
 
         private async Task Ready()
         {
-            //var mainChannel = _client.GetChannel(Variables.MainChannelID) as IMessageChannel;
-            IMessageChannel logChannel = (IMessageChannel)_client.GetChannel(Variables.LogChannelID);
-            IMessageChannel statusChannel = (IMessageChannel)_client.GetChannel(Variables.StatusChannelID);
+            IMessageChannel logChannel = (IMessageChannel)_client.GetChannel( (ulong)PrivateIds.LogChannel );
+            IMessageChannel statusChannel = (IMessageChannel)_client.GetChannel( (ulong)PublicIds.StatusChannel );
 
             // Set a status.
             await _client.SetStatusAsync(UserStatus.Idle);
