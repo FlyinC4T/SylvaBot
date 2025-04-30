@@ -22,7 +22,7 @@ namespace SylvaBot
 
         private async Task Ready()
         {
-            var guild = _client.GetGuild(Variables.BaseServerID);
+            var guild = _client.GetGuild( (ulong)Variables.PublicIds.MainServer );
             
             // Dynamically load all ISlashCommand classes
             var commandTypes = Assembly.GetExecutingAssembly()
