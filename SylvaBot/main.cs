@@ -22,7 +22,7 @@ namespace SylvaBot
         }
 
         // Placeholders
-        private string logMessages = "";
+        private static string logMessages = "";
 
         // Main method
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -48,7 +48,7 @@ namespace SylvaBot
             await Task.Delay(-1);
         }
 
-        private Task LogAsync(LogMessage log)
+        public static Task LogAsync(LogMessage log)
         {
             if (log.Severity != LogSeverity.Info)
                 logMessages += $"{log.Severity}  |  {DateTime.Now}  |  {log.Source}\n    {log.Message}\n\n";
@@ -64,7 +64,7 @@ namespace SylvaBot
 
             // Set a status.
             await _client.SetStatusAsync(UserStatus.Idle);
-            await _client.SetCustomStatusAsync("discord.gg/FJyChnMW5j - Support Server");
+            await _client.SetCustomStatusAsync("WIP AI Chatbot - discord.gg/FJyChnMW5j");
 
             await logChannel.SendMessageAsync("Sylva Connected.");
 
@@ -73,7 +73,7 @@ namespace SylvaBot
                 // Placeholders
                 ulong messageId = 0;
                 string messageContent = "";
-
+                
                 while (true)
                 {
                     await Task.Delay(10000);
@@ -109,21 +109,22 @@ namespace SylvaBot
 
                 while (true)
                 {
-                    await Task.Delay(60000);
 
                     long unixLoopTime = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
 
                     double memoryUsage = Process.GetCurrentProcess().WorkingSet64 / (1024 * 1024);
+
+                    var ollamaProcess = Process.GetProcessesByName("ollama").FirstOrDefault();
 
                     var embed = new EmbedBuilder()
                         .WithTitle("Live Sylva Status 🌸 (60s Delay)")
                         .AddField("Client Latency", $"{_client.Latency} ms", true)
                         .AddField("Memory", $"{memoryUsage} / 2 GB", true)
                         .AddField("Up since", $"<t:{unixStartTime}:R>", true)
-                        .AddField("Up since", $"<t:{unixLoopTime}:R> (If past 1 minute, she's offline.)", true)
-
+                        .AddField("Online", $"<t:{unixLoopTime}:R> (If past 1 minute, she's offline.)", false)
+                        .AddField("Ollama Memory Usage", $"{ollamaProcess?.WorkingSet64 / (1024 * 1024)} MB", false)
                         .WithColor(Variables.BaseColor)
-                        .WithFooter(footer => footer.Text = "Sylva Status")
+                        .WithFooter(footer => footer.Text = "Sylva Live Status")
                         .WithCurrentTimestamp()
                         .Build();
                     // Modify already-sent message.
@@ -132,20 +133,29 @@ namespace SylvaBot
                         msg.Embed = embed;
                         msg.Content = " ";
                     });
+
+                    await Task.Delay(60000);
                 }
             });
         }
 
         private async Task MessageReceivedAsync(SocketMessage message)
         {
+            SocketTextChannel channel = (SocketTextChannel)message.Channel;
+
             // Ignore messages from the bot itself or system messages
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
 
-            string response = new Methods.Prompt(_client).UserPrompt(message.Author, message.Content);
+            if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
+                await message.Channel.TriggerTypingAsync();
+
+            string response = await new Methods.Prompt(_client).UserPrompt(message, message.Content);
 
             // Only send a response if it's not empty
             if (!string.IsNullOrWhiteSpace(response))
+
+                // does not have a manual 2000 limit, too lazy to add that
                 await message.Channel.SendMessageAsync(response);
         }
     }
