@@ -83,7 +83,7 @@ namespace SylvaBot.Methods
 
         public async Task<string> UserPrompt(SocketMessage message, string promptMessage)
         {
-            SocketTextChannel channel = (SocketTextChannel)message.Channel;
+            //SocketTextChannel channel = (SocketTextChannel)message.Channel;
 
             // Placeholders
             AttentionLevel promptLevel = AttentionLevel.NoAttention; //Not used yet
@@ -96,10 +96,10 @@ namespace SylvaBot.Methods
             {
                 promptLevel = AttentionLevel.High;
 
-                if (!Secret.AllowedPromptChannel(channel.Id))
+                if (!Secret.AllowedPromptChannel(message.Channel.Id))
                     return "cant use me here lol :stuck_out_tongue:";
 
-                // 🌟 Here's the actual AI call
+                // ai call
                 var sylva = new SylvaAI();
                 string aiResponse = await sylva.GetResponseAsync(message, promptMessage);
 

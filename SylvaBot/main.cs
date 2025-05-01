@@ -1,6 +1,7 @@
 ﻿//
 using Discord;
 using Discord.WebSocket;
+using SylvaBot.Methods;
 using System.Diagnostics;
 
 using static SylvaBot.Secret;
@@ -42,7 +43,7 @@ namespace SylvaBot
             await _client.LoginAsync(TokenType.Bot, Secret.token);
             await _client.StartAsync();
 
-            await _commandHandler.InitializeAsync();
+            _commandHandler.Initialize();
 
             // Block the program from exiting
             await Task.Delay(-1);
@@ -127,6 +128,7 @@ namespace SylvaBot
                         .WithFooter(footer => footer.Text = "Sylva Live Status")
                         .WithCurrentTimestamp()
                         .Build();
+
                     // Modify already-sent message.
                     await statusChannel.ModifyMessageAsync(messageId, (msg) =>
                     {
@@ -141,8 +143,6 @@ namespace SylvaBot
 
         private async Task MessageReceivedAsync(SocketMessage message)
         {
-            SocketTextChannel channel = (SocketTextChannel)message.Channel;
-
             // Ignore messages from the bot itself or system messages
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
@@ -150,7 +150,11 @@ namespace SylvaBot
             if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
                 await message.Channel.TriggerTypingAsync();
 
+            Logger.LoggerAsync(LogSeverity.Info, message.Author.GlobalName + message.Content);
+
             string response = await new Methods.Prompt(_client).UserPrompt(message, message.Content);
+
+            Logger.LoggerAsync(LogSeverity.Info, "Sylva: " + response);
 
             // Only send a response if it's not empty
             if (!string.IsNullOrWhiteSpace(response))

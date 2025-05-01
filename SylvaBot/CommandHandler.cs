@@ -1,5 +1,7 @@
 ﻿//
+using Discord;
 using Discord.WebSocket;
+using SylvaBot.Methods;
 using System.Reflection;
 
 namespace SylvaBot
@@ -14,7 +16,7 @@ namespace SylvaBot
             _client = client;
         }
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
             _client.Ready += Ready;
             _client.SlashCommandExecuted += CommandExecutedAsync;
@@ -22,8 +24,8 @@ namespace SylvaBot
 
         private async Task Ready()
         {
-            var guild = _client.GetGuild( (ulong)Variables.PublicIds.MainServer );
-            
+            var guild = _client.GetGuild((ulong)Variables.PublicIds.MainServer);
+
             // Dynamically load all ISlashCommand classes
             var commandTypes = Assembly.GetExecutingAssembly()
                 .GetTypes()
@@ -32,12 +34,15 @@ namespace SylvaBot
             foreach (var type in commandTypes)
             {
                 var command = Activator.CreateInstance(type) as ISlashCommand;
-                _commands.Add(command.Name, command);
 
-                await guild.CreateApplicationCommandAsync(command.BuildCommand().Build());
+                if (command != null) // Ensure command is not null
+                {
+                    _commands.Add(command.Name, command);
+                    await guild.CreateApplicationCommandAsync(command.BuildCommand().Build());
+                }
             }
 
-            Console.WriteLine($"[Slash Commands] {_commands.Count} commands registered!");
+            Logger.LoggerAsync(LogSeverity.Debug, $"[Slash Commands] {_commands.Count} commands registered!");
         }
 
         private async Task CommandExecutedAsync(SocketSlashCommand command)

@@ -10,7 +10,6 @@ namespace SylvaBot.Methods
             // Do some logging.
             LogMessage log = new LogMessage(severity, "Logger", logMessage);
             Start.LogAsync(log);
-
         }
     }
 }
