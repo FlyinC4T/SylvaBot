@@ -12,6 +12,12 @@ namespace SylvaBot
             StatusChannel = 1366793583121928344 // #live-status
         }
 
+        public enum ClientLimits : int
+        {
+            MaxResponseLength = 1800,
+            MaxResponseTasks = 10
+        }
+        
         public static Discord.Color BaseColor { get; } = new Discord.Color(120, 200, 220); // Silver
     }
 }

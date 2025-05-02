@@ -41,7 +41,7 @@ namespace SylvaBot.Methods
 
                 "  All inputs, messages or prompts, come from a chat, you are to simply reply to them as a direct response.";
                 
-            string userPlaceholder = $"{message.Author.Id} | {message.Author.Username}: ";
+            userInput = $"{message.Author.Id} | {message.Author.Username}: " + userInput;
 
             var requestBody = new
             {
@@ -50,7 +50,7 @@ namespace SylvaBot.Methods
                 messages = new[]
                 {
                     new { role = "system", content = Secret.SystemPrompt + placeholders },
-                    new { role = "user", content = userPlaceholder + userInput }
+                    new { role = "user", content = userInput }
                 }
             };
 
