@@ -151,18 +151,21 @@ namespace SylvaBot
             await _messageQueueSemaphore.WaitAsync(); // Wait for an available slot in the queue
             try
             {
-                if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
-                    await message.Channel.TriggerTypingAsync();
+                _ = Task.Run(async () =>
+                {
+                    if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
+                        await message.Channel.TriggerTypingAsync();
 
-                string response = await new Prompt(_client).UserPrompt(message, message.Content);
+                    string response = await new Prompt(_client).UserPrompt(message, message.Content);
 
-                int maxLength = (int)ClientLimits.MaxResponseLength;
-                if (response.Length > maxLength)
-                    response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
+                    int maxLength = (int)ClientLimits.MaxResponseLength;
+                    if (response.Length > maxLength)
+                        response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
 
-                // Only send a response if it's not empty
-                if (!string.IsNullOrWhiteSpace(response))
-                    await message.Channel.SendMessageAsync(response);
+                    // Only send a response if it's not empty
+                    if (!string.IsNullOrWhiteSpace(response))
+                        await message.Channel.SendMessageAsync(response);
+                });
             }
             finally
             {
