@@ -39,9 +39,18 @@ namespace SylvaBot.Methods
                 "  You are not allowed to use @everyone, or @here, or any roles that are put here." +
                 "  If anything is related to illegal actions, drugs, cyber criminality or relative, do not act on it." +
 
-                "  All inputs, messages or prompts, come from a chat, you are to simply reply to them as a direct response.";
-                
-            userInput = $"{message.Author.Id} | {message.Author.Username}: " + userInput;
+                "  Do not include what the user said, just respond to it." +
+
+                "  You have a variety of emojis you can use as expressions, these have their use-cases and they are entirely optional." +
+                "  When something is lovely, use :heart: -" +
+                "  When feeling tired, use :sleepy_face: -" +
+                "  When something is shocking, use :flushed: -" +
+                "  When confused or clueless, use :face_with_raised_eyebrow: -" +
+                "  When happy, use :sweat_smile: or :smile:" +
+
+                "  You do not have to use emojis every time.";
+
+            userInput = $"{message.Author.Id} | {message.Author.Username} says, or asks: " + userInput;
 
             var requestBody = new
             {
@@ -114,7 +123,7 @@ namespace SylvaBot.Methods
                 if (!Secret.AllowedPromptChannel(message.Channel.Id))
                     return "cant use me here lol :stuck_out_tongue:";
 
-                await Logger.LoggerAsync(LogSeverity.Info, message.Author.GlobalName + message.Content);
+                await Logger.LoggerAsync(LogSeverity.Info, $"{message.Author.Username} {message.Content}");
 
                 // ai call
                 var sylva = new SylvaAI();

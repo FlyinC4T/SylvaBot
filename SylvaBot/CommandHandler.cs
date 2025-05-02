@@ -42,7 +42,7 @@ namespace SylvaBot
                 }
             }
 
-            Logger.LoggerAsync(LogSeverity.Debug, $"[Slash Commands] {_commands.Count} commands registered!");
+            await Logger.LoggerAsync(LogSeverity.Debug, $"[Slash Commands] {_commands.Count} commands registered!");
         }
 
         private async Task CommandExecutedAsync(SocketSlashCommand command)

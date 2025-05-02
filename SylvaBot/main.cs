@@ -47,7 +47,8 @@ namespace SylvaBot
 
             _commandHandler.Initialize();
 
-            using (HttpClient client = new HttpClient()) {
+            using (HttpClient client = new HttpClient())
+            {
                 string content = await client.GetStringAsync("" +
                     "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/refs/heads/master/en");
 
@@ -69,6 +70,8 @@ namespace SylvaBot
 
         private async Task Ready()
         {
+            Console.WriteLine(badWords.Length);
+
             IMessageChannel logChannel = (IMessageChannel)_client.GetChannel( (ulong)PrivateIds.LogChannel );
             IMessageChannel statusChannel = (IMessageChannel)_client.GetChannel( (ulong)PublicIds.StatusChannel );
 
@@ -164,17 +167,23 @@ namespace SylvaBot
                 {
                     if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
                         await message.Channel.TriggerTypingAsync();
-                      
+
                     string response = await new Prompt(_client).UserPrompt(message, message.Content);
-    
+
                     int maxLength = (int)ClientLimits.MaxResponseLength;
                     if (response.Length > maxLength)
                         response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
-                  
-                    foreach(string s in badWords)
-                      if (response.ToLower().Contains(s.ToLower()))
-                          response.ToLower().Replace(s.ToLower(), "*filtered*");
-    
+
+                    foreach (string s in badWords)
+                    {
+                        string word = s.ToLower();
+                        if (response.ToLower().Contains(word))
+                        {
+                            response = response.Replace(word, "*Filtered.*");
+                            await Logger.LoggerAsync(LogSeverity.Warning, word + " was filtered.");
+                        }
+                    }
+
                     // Only send a response if it's not empty
                     if (!string.IsNullOrWhiteSpace(response))
                         await message.Channel.SendMessageAsync(response);
