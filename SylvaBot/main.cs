@@ -162,10 +162,23 @@ namespace SylvaBot
             {
                 _ = Task.Run(async () =>
                 {
-                    if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
+                    bool isReply = false;
+
+                    if (message.Reference.ReferenceType.Value == MessageReferenceType.Default && message.Reference.MessageId.IsSpecified)
+                        isReply = true;
+
+                    if (message.ToString().Contains(_client.CurrentUser.Mention))
                         await message.Channel.TriggerTypingAsync();
+
+                    string content = message.Content;
+
+                    if (isReply) {
+                        IMessage msg = await message.Channel.GetMessageAsync(message.Reference.MessageId.Value);
+
+                        content += $"\nHere's conversation context. {msg.Content}";
+                    }
                       
-                    string response = await new Prompt(_client).UserPrompt(message, message.Content);
+                    string response = await new Prompt(_client).UserPrompt(message, content);
     
                     int maxLength = (int)ClientLimits.MaxResponseLength;
                     if (response.Length > maxLength)
