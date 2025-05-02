@@ -25,7 +25,7 @@ namespace SylvaBot
         // Placeholders
         private static string logMessages = "";
 
-        string[] badWords;
+        private string[] badWords;
 
         // Main method
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -160,22 +160,25 @@ namespace SylvaBot
             await _messageQueueSemaphore.WaitAsync(); // Wait for an available slot in the queue
             try
             {
-                if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
-                    await message.Channel.TriggerTypingAsync();
+                _ = Task.Run(async () =>
+                {
+                    if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
+                        await message.Channel.TriggerTypingAsync();
+                      
+                    string response = await new Prompt(_client).UserPrompt(message, message.Content);
+    
+                    int maxLength = (int)ClientLimits.MaxResponseLength;
+                    if (response.Length > maxLength)
+                        response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
                   
-                string response = await new Prompt(_client).UserPrompt(message, message.Content);
-
-                int maxLength = (int)ClientLimits.MaxResponseLength;
-                if (response.Length > maxLength)
-                    response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
-              
-                foreach(string s in badWords)
-                  if (response.ToLower().Contains(s.ToLower()))
-                      response.ToLower().Replace(s.ToLower(), "*filtered*");
-
-                // Only send a response if it's not empty
-                if (!string.IsNullOrWhiteSpace(response))
-                    await message.Channel.SendMessageAsync(response);
+                    foreach(string s in badWords)
+                      if (response.ToLower().Contains(s.ToLower()))
+                          response.ToLower().Replace(s.ToLower(), "*filtered*");
+    
+                    // Only send a response if it's not empty
+                    if (!string.IsNullOrWhiteSpace(response))
+                        await message.Channel.SendMessageAsync(response);
+                });
             }
             finally
             {
