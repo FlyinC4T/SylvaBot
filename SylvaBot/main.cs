@@ -1,9 +1,9 @@
 ﻿//
 using Discord;
 using Discord.WebSocket;
-using SylvaBot.Methods;
 using System.Diagnostics;
 
+using SylvaBot.Methods;
 using static SylvaBot.Secret;
 using static SylvaBot.Variables;
 
@@ -141,26 +141,33 @@ namespace SylvaBot
             });
         }
 
+        private readonly SemaphoreSlim _messageQueueSemaphore = new SemaphoreSlim((int)ClientLimits.MaxResponseTasks); // Limit to 10 concurrent tasks
+
         private async Task MessageReceivedAsync(SocketMessage message)
         {
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
 
-            if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
-                await message.Channel.TriggerTypingAsync();
+            await _messageQueueSemaphore.WaitAsync(); // Wait for an available slot in the queue
+            try
+            {
+                if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
+                    await message.Channel.TriggerTypingAsync();
 
+                string response = await new Prompt(_client).UserPrompt(message, message.Content);
 
-            string response = await new Methods.Prompt(_client).UserPrompt(message, message.Content);
+                int maxLength = (int)ClientLimits.MaxResponseLength;
+                if (response.Length > maxLength)
+                    response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
 
-            int maxLength = (int)ClientLimits.MaxMessageLength;
-            if (response.Length > maxLength)
-                response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
-
-            // Only send a response if it's not empty
-            if (!string.IsNullOrWhiteSpace(response))
-                await message.Channel.SendMessageAsync(response);
-            else
-                await message.Channel.SendMessageAsync("*Response failed.*");
+                // Only send a response if it's not empty
+                if (!string.IsNullOrWhiteSpace(response))
+                    await message.Channel.SendMessageAsync(response);
+            }
+            finally
+            {
+                _messageQueueSemaphore.Release(); // Release the slot in the queue
+            }
         }
     }
 }
