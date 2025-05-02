@@ -1,4 +1,4 @@
-﻿//
+//
 using Discord;
 using Discord.WebSocket;
 using SylvaBot.Methods;
@@ -25,6 +25,8 @@ namespace SylvaBot
         // Placeholders
         private static string logMessages = "";
 
+        string[] badWords;
+
         // Main method
 #pragma warning disable IDE0060 // Remove unused parameter
         static async Task Main(string[] args) => await new Start().MainAsync();
@@ -44,6 +46,13 @@ namespace SylvaBot
             await _client.StartAsync();
 
             _commandHandler.Initialize();
+
+            using (HttpClient client = new HttpClient()) {
+                string content = await client.GetStringAsync("" +
+                    "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/refs/heads/master/en");
+
+                badWords = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            }
 
             // Block the program from exiting
             await Task.Delay(-1);
@@ -143,22 +152,25 @@ namespace SylvaBot
 
         private async Task MessageReceivedAsync(SocketMessage message)
         {
-            // Ignore messages from the bot itself or system messages
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
 
             if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
                 await message.Channel.TriggerTypingAsync();
 
-
             string response = await new Methods.Prompt(_client).UserPrompt(message, message.Content);
 
-
-            // Only send a response if it's not empty
             if (!string.IsNullOrWhiteSpace(response))
+                response = "*Response didn't contain any charaters.*";
 
-                // does not have a manual 2000 limit, too lazy to add that
-                await message.Channel.SendMessageAsync(response);
+            if (response.Length > 2000)
+                response = "*Response was too long.*";
+
+            foreach(string s in badWords)
+                if (response.ToLower().Contains(s.ToLower()))
+                    response.ToLower().Replace(s.ToLower(), "*filtered*");
+
+            await message.Channel.SendMessageAsync(response);
         }
     }
 }
