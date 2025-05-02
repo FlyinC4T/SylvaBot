@@ -172,8 +172,7 @@ namespace SylvaBot
                         response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
                   
                     foreach(string s in badWords)
-                      if (response.ToLower().Contains(s.ToLower()))
-                          response.ToLower().Replace(s.ToLower(), "*filtered*");
+                        response.Replace(s.ToLower(), "*filtered*");
     
                     // Only send a response if it's not empty
                     if (!string.IsNullOrWhiteSpace(response))
