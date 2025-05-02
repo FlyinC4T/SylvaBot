@@ -51,8 +51,8 @@ namespace SylvaBot
 
         public static Task LogAsync(LogMessage log)
         {
-            if (log.Severity != LogSeverity.Info)
-                logMessages += $"{log.Severity}  |  {DateTime.Now}  |  {log.Source}\n    {log.Message}\n\n";
+            //if (log.Severity != LogSeverity.Info)
+            logMessages += $"{log.Severity}  |  {DateTime.Now}  |  {log.Source}\n    {log.Message}\n\n";
 
             Console.WriteLine(log.ToString());
             return Task.CompletedTask;
@@ -150,11 +150,9 @@ namespace SylvaBot
             if (message.ToString().Contains(_client.CurrentUser.Id.ToString()))
                 await message.Channel.TriggerTypingAsync();
 
-            Logger.LoggerAsync(LogSeverity.Info, message.Author.GlobalName + message.Content);
 
             string response = await new Methods.Prompt(_client).UserPrompt(message, message.Content);
 
-            Logger.LoggerAsync(LogSeverity.Info, "Sylva: " + response);
 
             // Only send a response if it's not empty
             if (!string.IsNullOrWhiteSpace(response))

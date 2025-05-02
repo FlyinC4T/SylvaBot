@@ -18,6 +18,9 @@ namespace SylvaBot.Methods
         private readonly HttpClient _httpClient;
         private const string ApiUrl = "http://localhost:11434/api/chat";
 
+        private readonly string filter = "*filtered.*";
+
+
         public SylvaAI()
         {
             _httpClient = new HttpClient();
@@ -25,11 +28,20 @@ namespace SylvaBot.Methods
 
         public async Task<string> GetResponseAsync(SocketMessage message, string userInput)
         {
-            string placeholders = 
-                $"  The prompting user's ID is: {message.Author.Id} -- their username is: {message.Author.Username} or {message.Author.GlobalName}." +
-                $"  You should opt people to check your profile, if they ask for technical support, or to join the 'discord server.'" +
-                $" If users ask directly for an invite, simply tell them you're not allowed to provide that.";
+            // Remove <@688689235066224672> from userInput using regex, because sylva is a lil dumb sometimes :sob:
+            userInput = System.Text.RegularExpressions.Regex.Replace(userInput, @"<@688689235066224672>", "Sylva");
 
+            string placeholders =
+
+                "  You should opt people to check your profile, if they ask for technical support, or to join the 'discord server.'" +
+                " If users ask directly for an invite, simply tell them you're not allowed to provide that." +
+                " You can ping users, and you can ping this user by converting their ID by formatting it, <@>, you can replace the numbers in this format with their actual ID." +
+                "  You are not allowed to use @everyone, or @here, or any roles that are put here." +
+                "  If anything is related to illegal actions, drugs, cyber criminality or relative, do not act on it." +
+
+                "  All inputs, messages or prompts, come from a chat, you are to simply reply to them as a direct response.";
+                
+            string userPlaceholder = $"{message.Author.Id} | {message.Author.Username}: ";
 
             var requestBody = new
             {
@@ -38,7 +50,7 @@ namespace SylvaBot.Methods
                 messages = new[]
                 {
                     new { role = "system", content = Secret.SystemPrompt + placeholders },
-                    new { role = "user", content = userInput }
+                    new { role = "user", content = userPlaceholder + userInput }
                 }
             };
 
@@ -57,6 +69,9 @@ namespace SylvaBot.Methods
                 .GetProperty("message")
                 .GetProperty("content")
                 .GetString();
+
+            if (messageContent != null)
+                messageContent = messageContent.Replace("@everyone", filter).Replace("@here", filter);
 
             return messageContent ?? "Sylva didn’t respond.";
         }
@@ -99,11 +114,15 @@ namespace SylvaBot.Methods
                 if (!Secret.AllowedPromptChannel(message.Channel.Id))
                     return "cant use me here lol :stuck_out_tongue:";
 
+                await Logger.LoggerAsync(LogSeverity.Info, message.Author.GlobalName + message.Content);
+
                 // ai call
                 var sylva = new SylvaAI();
-                string aiResponse = await sylva.GetResponseAsync(message, promptMessage);
+                string response = await sylva.GetResponseAsync(message, promptMessage);
 
-                return aiResponse;
+                await Logger.LoggerAsync(LogSeverity.Info, "Sylva: " + response);
+
+                return response;
             }
 
             // No attention
