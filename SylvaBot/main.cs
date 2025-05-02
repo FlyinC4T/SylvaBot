@@ -157,7 +157,7 @@ namespace SylvaBot
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
 
-            await _messageQueueSemaphore.WaitAsync(); // Wait for an available slot in the queue
+            await _messageQueueSemaphore.WaitAsync();
             try
             {
                 _ = Task.Run(async () =>
