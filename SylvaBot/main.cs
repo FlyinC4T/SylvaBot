@@ -143,7 +143,6 @@ namespace SylvaBot
 
         private async Task MessageReceivedAsync(SocketMessage message)
         {
-            // Ignore messages from the bot itself or system messages
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
 
@@ -153,12 +152,15 @@ namespace SylvaBot
 
             string response = await new Methods.Prompt(_client).UserPrompt(message, message.Content);
 
+            int maxLength = (int)ClientLimits.MaxMessageLength;
+            if (response.Length > maxLength)
+                response = response.Substring(0, maxLength) + $"\n\n-# *This response was limited to <{maxLength} characters due to message limit.*";
 
             // Only send a response if it's not empty
             if (!string.IsNullOrWhiteSpace(response))
-
-                // does not have a manual 2000 limit, too lazy to add that
                 await message.Channel.SendMessageAsync(response);
+            else
+                await message.Channel.SendMessageAsync("*Response failed.*");
         }
     }
 }
