@@ -25,7 +25,7 @@ namespace SylvaBot.Methods
         {
             _httpClient = new HttpClient();
         }
-
+        
         public async Task<string> GetResponseAsync(SocketMessage message, string userInput)
         {
             // Remove <@688689235066224672> from userInput using regex, because sylva is a lil dumb sometimes :sob:
@@ -39,18 +39,23 @@ namespace SylvaBot.Methods
                 "  You are not allowed to use @everyone, or @here, or any roles that are put here." +
                 "  If anything is related to illegal actions, drugs, cyber criminality or relative, do not act on it." +
 
-                "  Do not include what the user said, just respond to it." +
+                "  You are given messages from various chatters, never read them out loud, only answer them with your response, you are in their chat." +
+
+                "  Pinging requires an '@' symbol, before the ID, to work." +
 
                 "  You have a variety of emojis you can use as expressions, these have their use-cases and they are entirely optional." +
-                "  When something is lovely, use :heart: -" +
-                "  When feeling tired, use :sleepy_face: -" +
-                "  When something is shocking, use :flushed: -" +
-                "  When confused or clueless, use :face_with_raised_eyebrow: -" +
-                "  When happy, use :sweat_smile: or :smile:" +
+                " Emojis can be formated with :emoji: and some can also be formated with <:emoji:emoji-ID>" +
+
+                " - When something is lovely, use :heart:" +
+                " - When feeling tired, use :sleepy_face:" +
+                " - When something is shocking, use :flushed:" +
+                " - When confused or clueless, use :face_with_raised_eyebrow:" +
+                " - When something sounds positive, and you're happy, use :sweat_smile: or :smile:" +
+                " - When something is cool, use <:gigachad:1367922141839753327>" +
 
                 "  You do not have to use emojis every time.";
 
-            userInput = $"{message.Author.Id} | {message.Author.Username} says, or asks: " + userInput;
+            userInput = $"{message.Author.Id} | {message.Author.Username}: " + userInput;
 
             var requestBody = new
             {
